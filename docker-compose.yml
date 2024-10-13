@@ -1,0 +1,57 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+      
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - mini-instagram
+
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    volumes:
+      - ./frontend:/app
+
+    networks:
+      - mini-instagram
+    
+    ports:
+      - "127.0.0.1:5173:5173"
+
+  db:
+    container_name: db
+    image: mysql:8.0.30
+    restart: unless-stopped
+
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    
+    networks:
+      - mini-instagram
+    ports:
+      - "127.0.0.1:3306:3306"
+
+networks:
+  mini-instagram:
+    driver: bridge
+
+volumes:
+  db_data:
