@@ -1,50 +1,40 @@
 FROM php:8.2-fpm
 
-# Instalar dependências
-RUN apt-get update && apt-get install -y \
-    libzip-dev \
-    zip \
-    unzip \
-    nano \
-    curl
+ARG USER
+ARG UID
 
-# Instalar extensões PHP
-RUN docker-php-ext-install pdo_mysql zip
-
-# Instalar Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Definir o diretório de trabalho
 WORKDIR /var/www/html
 
-# Copiar o código da aplicação
 COPY . .
 
-# Copiar e instalar dependências do Composer
-RUN composer install
+# Criando usuário com as mesmas característcas do usuário host
+RUN if [ "$USER" != "root" ]; then echo "Creating $USER" && \
+    useradd -G www-data,root -u $UID -d /home/$USER $USER && \ 
+    mkdir -p /home/$USER/.compose && \
+    chown -R $USER:$USER /home/$USER;fi;
 
-# Passa o UID e GID como argumentos
-ARG UID
-ARG GID
 
-# Cria o grupo e usuário com os IDs da máquina host
-RUN groupadd -g ${GID} usergroup && \
-    useradd -u ${UID} -g usergroup -m backend
+# Instala dependências necessárias
+RUN apt-get update && apt-get install -y \
+    zip \
+    unzip \
+    git \
+    curl \
+    net-tools \
+    procps \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Adiciona o usuário ao grupo 'www-data'
-RUN usermod -a -G www-data backend
+# Instala o Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Ajusta permissões para o diretório onde o código foi copiado
-RUN chown -R backend:www-data /var/www/html
+# Ajusta permissões da pasta de armazenamento e cache para o Laravel funcionar corretamente
+RUN chown -R $USER:$USER /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Ajusta permissões de escrita e execução para o grupo
-RUN chmod -R 775 /var/www/html
+USER $USER
 
-# Expor a porta 8000
 EXPOSE 8000
-
-# Definir o usuário para rodar o container
-USER backend
-
-# Comando para iniciar o servidor
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

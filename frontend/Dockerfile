@@ -1,21 +1,26 @@
-# Usando a imagem do Node 22
-FROM node:22
+FROM node:22.0
 
-# Diretório de trabalho dentro do container
+ARG UID
+ARG GID
+
+# Modifica o GID do grupo 'node' para o valor passado
+RUN groupmod -g ${GID} node || groupadd -g ${GID} node
+
+# Modifica o UID do usuário 'node' para o valor passado
+RUN usermod -u ${UID} -g ${GID} node
+
+# Ajusta as permissões do diretório de trabalho
+RUN chown -R node:node /home/node
+
 WORKDIR /app
 
-# Copia o arquivo de configuração do package para instalar as dependências
-COPY package.json yarn.lock ./
+# Ajusta as permissões do diretório de trabalho para o usuário 'node'
+RUN chown -R node:node /app
 
-
-# Instala as dependências do projeto
-RUN yarn install
-
-# Copia os arquivos restantes para dentro do container
 COPY . .
 
-# Expõe a porta que o Vite utiliza (geralmente 5173)
+USER node
+
 EXPOSE 5173
 
-# Comando para rodar o servidor de desenvolvimento do Vite
-CMD ["yarn", "dev", "--host=0.0.0.0", "--port=5173"]
+
