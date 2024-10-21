@@ -2,6 +2,14 @@
 import { createGlobalStyle } from 'styled-components';
 import styled from 'styled-components';
 
+
+export const colors = {
+    primary: '#3F51B5', // Definir cor principal (azul)
+    secondary: '#FFEB3B', // Definir cor secundária (verde)
+    danger: '#e74c3c', // Definir cor de perigo (vermelho)
+    // Adicione mais cores conforme necessário
+}
+
 const GlobalStyles = createGlobalStyle`
 
     * {
@@ -23,7 +31,6 @@ const GlobalStyles = createGlobalStyle`
     }
 
     a {
-        color: #3498db;
         text-decoration: none !important;
     }
 
@@ -38,7 +45,6 @@ const GlobalStyles = createGlobalStyle`
 
     h2 {
         color:white;
-        background-color:#FFEB3B;
     }
 `;
 
@@ -49,9 +55,19 @@ export const Container = styled.section`
     padding: 0px 10px;
     color: #212121;
 
-    @media (max-width: 400px) {
-        padding: 0px 20px;
+    @media (max-width: 912px) {
+        padding: 0px 30px;
     }
+    
+    @media (max-width: 450px) {
+        padding: 0px 25px;
+    }
+`
+
+export const TitleOne = styled.h1`
+    font-size: 1.5em;
+    text-align: ${(props) => props.position || 'left'};
+    margin: 25px 0px;
 `
 
 export default GlobalStyles;
